@@ -113,3 +113,47 @@ def simulate_photons_detector(n_photons, n_steps, width, my):
             n_hits += 1
 
     return n_hits / n_photons
+
+
+@jit(nopython = True)
+def simulate_photons_3D(n_photons, object, widths, energy):
+    """
+    Takes in a 3d matrix "object" describing the attenuation coefficient of a material
+    at different grid points. Approximates the intensity of a photon beam moving through
+    every point on the three planes. Returns one 2D array of intensities at the detector for
+    each of the three planes. The simulation is performed by simulate_photons_detector.
+
+        Parameters:
+            n_photons (int):         number of photons
+            object (3D float array): matrix of attenuation coefficients at grid points
+            width (1d float array):  the widths of the material (cm) in each direction
+            energy (int):            energy of the photon beam to be used in the simulation
+        
+        Output:
+            xy_plane (1d float array): intensity at detector at each point in xy-plane
+            yz_plane (1d float array): intensity at detector at each point in yz-plane
+            xz_plane (1d float array): intensity at detector at each point in xz-plane
+    """
+    
+    nX, nY, nZ = object.shape # Get the number of gridpoint in each direction (dimension of object)
+    xy_plane, yz_plane, xz_plane = np.zeros((nX, nY)), np.zeros((nY, nZ)), np.zeros((nX, nZ)) # Creating the planes
+    
+    # Going through the xy plane
+    for x in range(nX):
+        for y in range(nY):
+            my = object[x, y, :] # Getting attenuation coefficients
+            xy_plane[x, y] = simulate_photons_detector(n_photons, nZ, widths[2], my, energy)
+    
+    # Going through the yz plane
+    for y in range(nY):
+        for z in range(nZ):
+            my = object[:, y, z] # Getting attenuation coefficients
+            yz_plane[y, z] = simulate_photons_detector(n_photons, nX, widths[0], my, energy)
+            
+    # Going through the xz plane
+    for x in range(nX):
+        for z in range(nZ):
+            my = object[x, :, z] #henter riktig my
+            xz_plane[x, z] = simulate_photons_detector(n_photons, nY, widths[1], my, energy)
+    
+    return xy_plane, yz_plane, xz_plane
