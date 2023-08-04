@@ -116,7 +116,7 @@ def simulate_photons_detector(n_photons, n_steps, width, my):
 
 
 @jit(nopython = True)
-def simulate_photons_3D(n_photons, object, widths, energy):
+def simulate_photons_3D(n_photons, object, widths):
     """
     Takes in a 3d matrix "object" describing the attenuation coefficient of a material
     at different grid points. Approximates the intensity of a photon beam moving through
@@ -142,18 +142,18 @@ def simulate_photons_3D(n_photons, object, widths, energy):
     for x in range(nX):
         for y in range(nY):
             my = object[x, y, :] # Getting attenuation coefficients
-            xy_plane[x, y] = simulate_photons_detector(n_photons, nZ, widths[2], my, energy)
+            xy_plane[x, y] = simulate_photons_detector(n_photons, nZ, widths[2], my)
     
     # Going through the yz plane
     for y in range(nY):
         for z in range(nZ):
             my = object[:, y, z] # Getting attenuation coefficients
-            yz_plane[y, z] = simulate_photons_detector(n_photons, nX, widths[0], my, energy)
+            yz_plane[y, z] = simulate_photons_detector(n_photons, nX, widths[0], my)
             
     # Going through the xz plane
     for x in range(nX):
         for z in range(nZ):
             my = object[x, :, z] #henter riktig my
-            xz_plane[x, z] = simulate_photons_detector(n_photons, nY, widths[1], my, energy)
+            xz_plane[x, z] = simulate_photons_detector(n_photons, nY, widths[1], my)
     
     return xy_plane, yz_plane, xz_plane
