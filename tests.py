@@ -14,6 +14,15 @@ class Test_simulate_photons(unittest.TestCase):
         self.n_steps = random.randint(100, 1000)
         self.width = random.randint(5,20)
         self.mu = random.random() * np.ones(self.n_steps)
+    
+    def test_intensity_proper_value(self):
+        # Run simulation 
+        intensity = sf.simulate_photons(self.n_photons, self.n_steps, self.width, self.mu)
+
+        # Check that all intensities are between 0 and 1
+        for i in intensity:
+            self.assertLessEqual(i - 1e-5, 1)
+            self.assertGreaterEqual(i + 1e-5, 0)
 
     def test_intensity_decreasing(self):
         # Run simulation
@@ -41,6 +50,14 @@ class simulate_photons_detector(unittest.TestCase):
         self.n_steps = random.randint(100, 1000)
         self.width = random.randint(5,20)
         self.mu = random.random() * np.ones(self.n_steps)
+    
+    def test_intensity_proper_value(self):
+        # Run simulation 
+        intensity = sf.simulate_photons_detector(self.n_photons, self.n_steps, self.width, self.mu)
+
+        # Check that all intensities are between 0 and 1
+        self.assertLessEqual(intensity - 1e-5, 1)
+        self.assertGreaterEqual(intensity + 1e-5, 0)
 
     def test_comparable_result(self):
         # Checking that the intensity at the decode is similar to the one from other simulation
