@@ -84,6 +84,19 @@ def main():
     #############################################
 
     st.subheader("Contrast between bone and tissue")
+    st.write("In this part two different photon beams will be simulated. One will go through only tissue, and the other will first go through tissue, \
+             then through bone and in the end through tissue again. All three layers have the same thickness. Their contrast will be compared at different energy levels. \
+             The attenuation of bone and tissue at different energies is given in the data folder. \
+             The data file for bone was collected from \
+             https://physics.nist.gov/PhysRefData/XrayMassCoef/ComTab/bone.html, \n\
+             and the data file for (soft) tissue was collected from \
+             https://physics.nist.gov/PhysRefData/XrayMassCoef/ComTab/tissue.html.\n\
+             The first column contains the energy, and the second one the mass-attenuation coefficient. To get back the attentuation coefficient \
+             $\mu $, these values will have to be devided by the density, $\rho$. I will use $\rho_{tissue} = 1.02 g/cm^3$ and $\rho_{bone} = 1.92 g/cm^3$.\n\
+             This part of the project is supposed to simulate x-rays, where some of the rays will move through some soft tissue and some bone, \
+             and others will move through only tissue. After the simulation is finished, the difference in concentration will be compared to see if any contrast may be visible.\
+             Since the energy of x-rays used in medicine lies between 10keV and 100keV, the simulations in this part will consider energies in this range.")
+    
     with st.expander("Specify parameters for simulation"):
         # Make it possible for user to change default paramters for second part
         tissue_dens = 1.02 #g/cm^3
@@ -109,6 +122,8 @@ def main():
         plt.xlabel("Energy [MeV]"); plt.ylabel("$\mu$ $[cm^{-1}]$"); plt.legend(); plt.ylim(1e-2, 1e4)
         plt.vlines(energy_lower, 0, 1e4, color = "grey"); plt.vlines(energy_higher, 0, 1e4, color = "grey")
         st.pyplot(fig3)
+        st.write("The plot shows the attenuation coefficient of bone and tissue at varying energies.\
+                  It can be noted than the attenuation coefficient of bone always stays higher than tissue.")
     
     if st.checkbox("Run simulation", False, key = 2):
         # Creating a list of energies that are contained in both bone and tissue data, and are within interval
@@ -147,6 +162,10 @@ def main():
         plt.title("Relative intensity at detector for different energies.")
         plt.xlabel("Energi [keV]"); plt.ylabel("I/I$_0$"); plt.legend()
         st.pyplot(fig4)
+        st.write("The plot shows the intensity of a photon beam going through bone and tissue. Since the attenuation coefficient of bone is higher than tissue\
+                 it is expected that the intensity at the detector is lower. This is observed in the plot above. Because the of the varying attenuation\
+                 coefficient, the difference in intensity also varies. The difference is biggest around 30-40 keV. However, instead of considering the difference directly,\
+                 it might be more usefull to look at the contrast.")
 
 
         fig5 = plt.figure()
@@ -158,8 +177,13 @@ def main():
         plt.title("Contrast between $I_{tisse}$ og $I_{bone}$")
         plt.xlabel("Energi [keV]"); plt.ylabel("$I/I_0$")
         st.pyplot(fig5)
-
-
+        st.write("The plot displays the contrast between a beam going through bone and one going throug tissue. The contrast looks to be the biggest for lower energy photon beams\
+                 (but high enough energy for the photons to get through). It seems reasonable that the contrast starts at 1, since at 15keV some photons are able to move through the tissue, but not the bone.")
+                 
+                 
+        st.write("It might also be interesting to get an idea of how many photons are required for the detector to be able to detect the beam after it has passed through. \
+                 If we assume that an intensity of 10MeV is required for the detector to be able to detect a signal, we can use the previously calculated results to find the necessary number of photons.\n\
+                 Since the intensity of the tissue beam for the first energy and the intensity of the bone beam for the two first energies are numerically zero, they cannot be used to find the correct number of photons.")
         req_photons_tissue = 10 / (I_tissue_detector[1:] * energies[1:])
         req_photons_bone = 10 / (I_bone_detector[2:] * energies[2:])
         req_photons = 10 / energies[1:]
@@ -172,6 +196,16 @@ def main():
         plt.xlabel("Energy [keV]"); plt.ylabel("Number of photons")
         plt.legend()
         st.pyplot(fig6)
+        st.write("The plot shows the required number of photons to reach 10MeV at the detector. As expected,\
+                  the plots show that a higher number of photons are required for the beam travelling through bone. \
+                  Furthermore, as the energy increases and the percentage of photons passing through increases, \
+                  the slopes flatten out and the distance to the minimal number of photons decreases.\n\
+                  As mentioned before the overall goal is to maximize the contrast, while also minimizing the quantity of absorbed photons. \
+                  For simplicity we will for the moment ignore Compton-scattering and assume that all of the photons\
+                  that doesn't make it through the material are absorbed. Even though this is a rough approximation,\
+                  it can give a good idea of which energy region that gives the best trade-off between a good contrast and a small absorbed dosage.\
+                  The absorbed dosage is given by equation (4). For the beam that passes through 1/3 tissue, 1/3 bone and 1/3 tissue,\
+                  we must know how many photons that were absorbed in each of the three sections.")
 
 
         n_photon_tissue = I_tissue_detector[1:] * req_photons_tissue
@@ -204,7 +238,11 @@ def main():
         plt.xlabel("Energy [keV]")
         plt.ylabel("Energy per mass [MeV/g]")
         st.pyplot(fig7)
-
+        st.write("The plot shows that the absorbed dosage decreases as the increases. This might seem counterintuitive, but can be explained by two effects.\
+                  The first reason is that the attenuation coefficient decreases as the energy increases, allowing more photons to pass through.\
+                  The second reason comes from the fact that the number of photons is set so that the energy at the detector of the beam moving through tissue is constant.\
+                  In other words, the initial energy of the beam varies.")
+        
         fig8, axes8 = plt.subplots()
         plt8 = axes8.semilogy(energies[1:]*1000, d_tissue+d_bone, label = "Total absorbed dosage")
         axes8_2 = axes8.twinx()
@@ -218,6 +256,12 @@ def main():
         axes8.tick_params(axis="y", colors="blue")
         axes8_2.tick_params(axis="y", colors="red")
         st.pyplot(fig8)
+        st.write("The figure shows the absorbed dosage and the contrast for energy levels ranging from 20keV to 100keV.\
+                  Since a high contrast and a low absorbed quantity is to be desired, it is difficult to know how to choose\
+                  the best combination. The absorbed dosage decreases quickly untill an energy level of 30keV and the\
+                  contrast is quite high untill energy levels of 40-50 keV. Therefore it might be that the optimal energy\
+                  level is somewhere between 30keV and 40keV.")
+
 
 
     ############################################
