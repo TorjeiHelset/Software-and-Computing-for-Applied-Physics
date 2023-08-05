@@ -177,7 +177,7 @@ def simulation_3(n_photons_3, objects1, objects2, widths3_1, widhts3_2):
             axes9[j, k].imshow(objects[0][j][k].T, extent = extents[0][k])
     
     fig10, axes10 = plt.subplots(nrows = 3, ncols = 3, figsize= (9.5, 9))
-    fig10.suptitle(f"Object 1")
+    fig10.suptitle(f"Object 2")
     fig10.subplots_adjust(bottom = 0.1, top = 0.9, hspace = 0.4, wspace = 0.4)
     for j in range(3):
         for k  in range(3):
