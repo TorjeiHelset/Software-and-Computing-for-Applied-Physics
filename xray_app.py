@@ -21,6 +21,11 @@ def main():
     ############################################
 
     st.subheader("Stability of Monte Carlo Simulation")
+    st.write("In this part a one-dimensional beam of photons will be sent through a material with dampening coefficient, $\mu$. \
+              The result from the Monte-Carlo method and the analytical solution will be compared. \
+              In the end the stability of the Monte-Carlo method will be looked into by comparing different number of photons and different steplengths $\Delta x$.\
+              This part is mainly to check that the numerical solver corresponds with the analytical solution.")
+    
     with st.expander("Specify parameters for simulation"):
         # Make it possible for user to change default paramters for first part
         width_1 = st.number_input("Width (cm)", 1, 100, 10, 1)
@@ -48,6 +53,8 @@ def main():
         plt.legend()
         plt.show()
         st.pyplot(fig1)
+        st.write("The plot above shows the accuracy of the numerical simulation for different number of photons.\
+                 From the plot it is clear to see that as the number of photons in the photon beam increases, the Monte Carlo approximation approaches the analytical solution. ")
 
         # Figure 2 showing the numerical approximation for different steplengths
         fig2 = plt.figure()
@@ -68,6 +75,9 @@ def main():
         plt.ylabel("$I/I_0$")
         plt.legend()
         st.pyplot(fig2)
+        st.write("The plot shows the numerical approximation compared to the analytical one for different steplenghts.\
+                 From the plot it is apparent that a large number of steps (a small steplength) is needed to capture the curvature of the analytical solution. ")
+
 
     #############################################
     ######//////    Second part      \\\\\\######
