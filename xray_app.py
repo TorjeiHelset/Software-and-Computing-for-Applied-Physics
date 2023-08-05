@@ -13,6 +13,47 @@ def main():
     User can interact with simulation and plots
     '''
 
+    # Defining some session state variables
+    # These are used to avoid having to rerun simulations extra times
+
+    # Boolean variables to check if simulation has been run
+    if 'simulation_1' not in st.session_state:
+        st.session_state['simulation_1'] = False
+    
+    if 'simulation_2' not in st.session_state:
+        st.session_state['simulation_2'] = False
+
+    if 'simulation_3' not in st.session_state:
+        st.session_state['simulation_3'] = False
+
+    # Variables to store the figures
+    if 'fig1' not in st.session_state:
+        st.session_state['fig1'] = None
+    
+    if 'fig2' not in st.session_state:
+        st.session_state['fig2'] = None
+
+    # fig2 is a plot showing attenuation coefficient and does not require any simulation
+    # Therefore it is not stored as session_state variable
+
+    if 'fig4' not in st.session_state:
+        st.session_state['fig4'] = None
+
+    if 'fig5' not in st.session_state:
+        st.session_state['fig5'] = None
+
+    if 'fig6' not in st.session_state:
+        st.session_state['fig6'] = None
+
+    if 'fig7' not in st.session_state:
+        st.session_state['fig7'] = None
+    
+    if 'fig8' not in st.session_state:
+        st.session_state['fig8'] = None
+    
+    if 'fig9' not in st.session_state:
+        st.session_state['fig9'] = None
+
     # Main title of application
     st.title("Monte Carlo Simulation of X-ray imaging.")
 
@@ -44,17 +85,13 @@ def main():
         fig1 = plt.figure()
         plt.plot(x_1, I_analytical, label = 'Analytical', linestyle = '--', color = 'black', linewidth = 1)
         number_of_photons = [10, 50, 100, 1000, 10000, 100000]
-
         for i, n_photon in enumerate(number_of_photons):
             # Going through the different numbers of photons
             I_numerical = sim.simulate_photons(n_photon, n_steps_1, width_1, my1)
             plt.plot(x_1, I_numerical, label = f"{n_photon} fotoner")
         plt.title("Numerical (scaled) intensity for different number of photons compared to the analytical solution.")
         plt.legend()
-        plt.show()
-        st.pyplot(fig1)
-        st.write("The plot above shows the accuracy of the numerical simulation for different number of photons.\
-                 From the plot it is clear to see that as the number of photons in the photon beam increases, the Monte Carlo approximation approaches the analytical solution. ")
+        st.session_state['fig1'] = fig1
 
         # Figure 2 showing the numerical approximation for different steplengths
         fig2 = plt.figure()
@@ -67,14 +104,23 @@ def main():
             x1_2 = np.linspace(0, width_1, n_step + 1) # Need new x-axis for each simulation
             my1_2 = 0.1 * np.ones(n_step) # Dimension of my changes with number of steps
             I = sim.simulate_photons(n_photons_1, n_step, width_1, my1_2) # Do the simulation
-            
             plt.plot(x1_2, I, label = f"$\Delta x$ = {dx1_2[i]} cm")
 
         plt.title("Monte Carlo-method with different $\Delta$x")
         plt.xlabel("x [cm]")
         plt.ylabel("$I/I_0$")
         plt.legend()
-        st.pyplot(fig2)
+        st.session_state['fig2'] = fig2
+
+        # Update to say that first simulation has been run
+        st.session_state['simulation_1'] = True
+    
+    if st.session_state['simulation_1']:
+        st.pyplot(st.session_state['fig1'])
+        st.write("The plot above shows the accuracy of the numerical simulation for different number of photons.\
+                 From the plot it is clear to see that as the number of photons in the photon beam increases, the Monte Carlo approximation approaches the analytical solution. ")
+        
+        st.pyplot(st.session_state['fig2'])
         st.write("The plot shows the numerical approximation compared to the analytical one for different steplenghts.\
                  From the plot it is apparent that a large number of steps (a small steplength) is needed to capture the curvature of the analytical solution. ")
 
@@ -99,23 +145,22 @@ def main():
     
     with st.expander("Specify parameters for simulation"):
         # Make it possible for user to change default paramters for second part
-        tissue_dens = 1.02 #g/cm^3
-        bone_dens = 1.92 #g/cm^3
         width_2 = st.number_input("Width (cm)", 1, 100, 3, 1, key = 21)
         n_steps_2 = st.number_input("Number of steps", 1, 10000, 1000, 1, key = 22)
         n_photons_2 = st.number_input("Number of photons", 1, 10000, 10000, 1, key = 23)
 
-        # reading in the datafiles for attenuation coefficients
-        energy_tissue, mu_tissue = np.loadtxt("data/tissue.txt", delimiter=',', unpack=True)
-        energy_bone, mu_bone = np.loadtxt("data/bone.txt", delimiter=',', unpack=True)
-
-        # Multiplying with density to get correct attenuation coefficient
-        mu_tissue *= tissue_dens
-        mu_bone *= bone_dens
+    tissue_dens = 1.02 #g/cm^3
+    bone_dens = 1.92 #g/cm^3
+    # reading in the datafiles for attenuation coefficients
+    energy_tissue, mu_tissue = np.loadtxt("data/tissue.txt", delimiter=',', unpack=True)
+    energy_bone, mu_bone = np.loadtxt("data/bone.txt", delimiter=',', unpack=True)
+    # Multiplying with density to get correct attenuation coefficient
+    mu_tissue *= tissue_dens
+    mu_bone *= bone_dens
+    energy_lower, energy_higher = 1e-2, 1e-1
 
     if st.checkbox("Display attenuation coefficient", True):
         fig3 = plt.figure()
-        energy_lower, energy_higher = 1e-2, 1e-1
         plt.loglog(energy_tissue, mu_tissue, label = "Tissue")
         plt.loglog(energy_bone, mu_bone, label = "Bone")
         plt.title("Attentuation coefficient as function of density")
@@ -161,12 +206,7 @@ def main():
         plt.plot(energies*1000, I_bone_detector, label = "$I_{bone}$")
         plt.title("Relative intensity at detector for different energies.")
         plt.xlabel("Energi [keV]"); plt.ylabel("I/I$_0$"); plt.legend()
-        st.pyplot(fig4)
-        st.write("The plot shows the intensity of a photon beam going through bone and tissue. Since the attenuation coefficient of bone is higher than tissue\
-                 it is expected that the intensity at the detector is lower. This is observed in the plot above. Because the of the varying attenuation\
-                 coefficient, the difference in intensity also varies. The difference is biggest around 30-40 keV. However, instead of considering the difference directly,\
-                 it might be more usefull to look at the contrast.")
-
+        st.session_state['fig4'] = fig4
 
         fig5 = plt.figure()
         contrast = np.zeros(len(I_bone_detector))
@@ -176,14 +216,8 @@ def main():
         plt.plot(energies[1:]*1000, contrast[1:])
         plt.title("Contrast between $I_{tisse}$ og $I_{bone}$")
         plt.xlabel("Energi [keV]"); plt.ylabel("$I/I_0$")
-        st.pyplot(fig5)
-        st.write("The plot displays the contrast between a beam going through bone and one going throug tissue. The contrast looks to be the biggest for lower energy photon beams\
-                 (but high enough energy for the photons to get through). It seems reasonable that the contrast starts at 1, since at 15keV some photons are able to move through the tissue, but not the bone.")
-                 
-                 
-        st.write("It might also be interesting to get an idea of how many photons are required for the detector to be able to detect the beam after it has passed through. \
-                 If we assume that an intensity of 10MeV is required for the detector to be able to detect a signal, we can use the previously calculated results to find the necessary number of photons.\n\
-                 Since the intensity of the tissue beam for the first energy and the intensity of the bone beam for the two first energies are numerically zero, they cannot be used to find the correct number of photons.")
+        st.session_state['fig5'] = fig5
+
         req_photons_tissue = 10 / (I_tissue_detector[1:] * energies[1:])
         req_photons_bone = 10 / (I_bone_detector[2:] * energies[2:])
         req_photons = 10 / energies[1:]
@@ -195,24 +229,12 @@ def main():
         plt.title("Required number of photons for detection")
         plt.xlabel("Energy [keV]"); plt.ylabel("Number of photons")
         plt.legend()
-        st.pyplot(fig6)
-        st.write("The plot shows the required number of photons to reach 10MeV at the detector. As expected,\
-                  the plots show that a higher number of photons are required for the beam travelling through bone. \
-                  Furthermore, as the energy increases and the percentage of photons passing through increases, \
-                  the slopes flatten out and the distance to the minimal number of photons decreases.\n\
-                  As mentioned before the overall goal is to maximize the contrast, while also minimizing the quantity of absorbed photons. \
-                  For simplicity we will for the moment ignore Compton-scattering and assume that all of the photons\
-                  that doesn't make it through the material are absorbed. Even though this is a rough approximation,\
-                  it can give a good idea of which energy region that gives the best trade-off between a good contrast and a small absorbed dosage.\
-                  The absorbed dosage is given by equation (4). For the beam that passes through 1/3 tissue, 1/3 bone and 1/3 tissue,\
-                  we must know how many photons that were absorbed in each of the three sections.")
-
+        st.session_state['fig6'] = fig6
 
         n_photon_tissue = I_tissue_detector[1:] * req_photons_tissue
         n_photon_bone = I_bone_detector[1:] * req_photons_tissue
         n_photon_after_tissue = I_after_tissue[1:] * req_photons_tissue # After the tissue part
         n_photon_after_bone = I_after_bone[1:] * req_photons_tissue # After bone part
-
         n_absorbed_tissue = req_photons_tissue - n_photon_tissue # Absorbed photons for the tissue beam
 
         # Calculating the number of photons absorbed in the second beam after each of the sections
@@ -228,7 +250,6 @@ def main():
                                 +  (n_in_bone / (1/3 * bone_dens)) 
                                 +  (n_absorbed_bone / (1/3 * tissue_dens))) 
         
-
         fig7 = plt.figure()
         plt.semilogy(energies[1:]*1000, d_tissue, label = "Absorbed in tissue")
         plt.semilogy(energies[1:]*1000, d_bone, label  = "Absorbed in bone")
@@ -237,12 +258,8 @@ def main():
         plt.title("Absorbed dosage in tissue and bone")
         plt.xlabel("Energy [keV]")
         plt.ylabel("Energy per mass [MeV/g]")
-        st.pyplot(fig7)
-        st.write("The plot shows that the absorbed dosage decreases as the increases. This might seem counterintuitive, but can be explained by two effects.\
-                  The first reason is that the attenuation coefficient decreases as the energy increases, allowing more photons to pass through.\
-                  The second reason comes from the fact that the number of photons is set so that the energy at the detector of the beam moving through tissue is constant.\
-                  In other words, the initial energy of the beam varies.")
-        
+        st.session_state['fig7'] = fig7
+
         fig8, axes8 = plt.subplots()
         plt8 = axes8.semilogy(energies[1:]*1000, d_tissue+d_bone, label = "Total absorbed dosage")
         axes8_2 = axes8.twinx()
@@ -255,7 +272,44 @@ def main():
         axes8_2.legend(plt8 + plt8_2, ls)
         axes8.tick_params(axis="y", colors="blue")
         axes8_2.tick_params(axis="y", colors="red")
-        st.pyplot(fig8)
+        st.session_state['fig8'] = fig8
+
+        st.session_state['simulation_2'] = True
+
+    if st.session_state['simulation_2']:
+        st.pyplot(st.session_state['fig4'])
+        st.write("The plot shows the intensity of a photon beam going through bone and tissue. Since the attenuation coefficient of bone is higher than tissue\
+                it is expected that the intensity at the detector is lower. This is observed in the plot above. Because the of the varying attenuation\
+                coefficient, the difference in intensity also varies. The difference is biggest around 30-40 keV. However, instead of considering the difference directly,\
+                it might be more usefull to look at the contrast.")
+        
+        st.pyplot(st.session_state['fig5'])
+        st.write("The plot displays the contrast between a beam going through bone and one going throug tissue. The contrast looks to be the biggest for lower energy photon beams\
+                 (but high enough energy for the photons to get through). It seems reasonable that the contrast starts at 1, since at 15keV some photons are able to move through the tissue, but not the bone.")
+                 
+        st.write("It might also be interesting to get an idea of how many photons are required for the detector to be able to detect the beam after it has passed through. \
+                 If we assume that an intensity of 10MeV is required for the detector to be able to detect a signal, we can use the previously calculated results to find the necessary number of photons.\n\
+                 Since the intensity of the tissue beam for the first energy and the intensity of the bone beam for the two first energies are numerically zero, they cannot be used to find the correct number of photons.")
+
+        st.pyplot(st.session_state['fig6'])
+        st.write("The plot shows the required number of photons to reach 10MeV at the detector. As expected,\
+                  the plots show that a higher number of photons are required for the beam travelling through bone. \
+                  Furthermore, as the energy increases and the percentage of photons passing through increases, \
+                  the slopes flatten out and the distance to the minimal number of photons decreases.\n\
+                  As mentioned before the overall goal is to maximize the contrast, while also minimizing the quantity of absorbed photons. \
+                  For simplicity we will for the moment ignore Compton-scattering and assume that all of the photons\
+                  that doesn't make it through the material are absorbed. Even though this is a rough approximation,\
+                  it can give a good idea of which energy region that gives the best trade-off between a good contrast and a small absorbed dosage.\
+                  The absorbed dosage is given by equation (4). For the beam that passes through 1/3 tissue, 1/3 bone and 1/3 tissue,\
+                  we must know how many photons that were absorbed in each of the three sections.")
+
+        st.pyplot(st.session_state['fig7'])
+        st.write("The plot shows that the absorbed dosage decreases as the increases. This might seem counterintuitive, but can be explained by two effects.\
+                  The first reason is that the attenuation coefficient decreases as the energy increases, allowing more photons to pass through.\
+                  The second reason comes from the fact that the number of photons is set so that the energy at the detector of the beam moving through tissue is constant.\
+                  In other words, the initial energy of the beam varies.")
+        
+        st.pyplot(st.session_state['fig8'])
         st.write("The figure shows the absorbed dosage and the contrast for energy levels ranging from 20keV to 100keV.\
                   Since a high contrast and a low absorbed quantity is to be desired, it is difficult to know how to choose\
                   the best combination. The absorbed dosage decreases quickly untill an energy level of 30keV and the\
@@ -311,19 +365,35 @@ def main():
         extents = [[[0, 6.5, 0, 44.6], [0, 44.6, 0, 44.6], [0, 6.5, 0, 44.6]],
                 [[0, 12, 0, 12], [0, 12, 0, 10], [0, 12, 0, 10]]]
 
-        for i in range(len(objects)):
-            figur12, akser12 = plt.subplots(nrows = 3, ncols = 3, figsize= (9.5, 9))
-            figur12.suptitle(f"Object {i+1}")
-            figur12.subplots_adjust(bottom = 0.1, top = 0.9, hspace = 0.4, wspace = 0.4)
-            for j in range(3):
-                for k  in range(3):
-                    akser12[j, k].grid(False)
-                    akser12[j,k].set_xlabel(x_labs[k])
-                    akser12[j,k].set_ylabel(y_labs[k])
-                    akser12[j,k].set_title(energy_labs[i][j])
-                    akser12[j, k].imshow(objects[i][j][k].T, extent = extents[i][k])
-            st.pyplot(figur12)
-
+        
+        fig8, axes8 = plt.subplots(nrows = 3, ncols = 3, figsize= (9.5, 9))
+        fig8.suptitle(f"Object 1")
+        fig8.subplots_adjust(bottom = 0.1, top = 0.9, hspace = 0.4, wspace = 0.4)
+        for j in range(3):
+            for k  in range(3):
+                axes8[j, k].grid(False)
+                axes8[j,k].set_xlabel(x_labs[k])
+                axes8[j,k].set_ylabel(y_labs[k])
+                axes8[j,k].set_title(energy_labs[0][j])
+                axes8[j, k].imshow(objects[0][j][k].T, extent = extents[0][k])
+        st.session_state['fig8'] = fig8
+        
+        fig9, axes9 = plt.subplots(nrows = 3, ncols = 3, figsize= (9.5, 9))
+        fig9.suptitle(f"Object 1")
+        fig9.subplots_adjust(bottom = 0.1, top = 0.9, hspace = 0.4, wspace = 0.4)
+        for j in range(3):
+            for k  in range(3):
+                axes9[j, k].grid(False)
+                axes9[j,k].set_xlabel(x_labs[k])
+                axes9[j,k].set_ylabel(y_labs[k])
+                axes9[j,k].set_title(energy_labs[0][j])
+                axes9[j, k].imshow(objects[0][j][k].T, extent = extents[0][k])
+        st.session_state['fig9'] = fig9
+        st.session_state['simulation_3'] = True
+    
+    if st.session_state['simulation_3']:
+        st.pyplot(st.session_state['fig8'])
+        st.pyplot(st.session_state['fig9'])
         st.write("The first object seems to to display some organic matter. It is difficult to say for sure,\
                   but it could be a section of the thorax. The photon beams going through the yz-plane gives\
                   the most information about the object. The attenuation coefficient varies with energy, which\
