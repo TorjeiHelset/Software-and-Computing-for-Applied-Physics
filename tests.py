@@ -40,7 +40,7 @@ class Test_simulate_photons(unittest.TestCase):
         self.assertEqual(len(intensity), self.n_steps + 1)
 
 
-class simulate_photons_detector(unittest.TestCase):
+class Test_simulate_photons_detector(unittest.TestCase):
     """
     Class for testing the simulate photons detector function
     """
@@ -70,6 +70,57 @@ class simulate_photons_detector(unittest.TestCase):
         
         # Checking that the two intensities are "close enough"
         self.assertAlmostEqual(target, end_intensity, delta = 0.001)
+
+class Test_simulate_photons_3D(unittest.TestCase):
+    """
+    Class for testing the simulate photons detector function
+    """
+    def setUp(self):
+        # Setting up parameters
+        self.n_photons = random.randint(100, 1000)
+        self.widths = np.array([random.randint(5,20) for _ in range(3)])
+        coinflip = random.random()
+        energylevel = random.randint(1,3)
+
+        if coinflip > 0.5:
+            objects = np.array([np.load("data/object1_20keV.npy"), 
+                                np.load("data/object1_50keV.npy"), 
+                                np.load("data/object1_100keV.npy")])
+        else:
+            objects = np.array([np.load("data/object2_25keV.npy"),
+                                np.load("data/object2_50keV.npy"),
+                                np.load("data/object2_75keV.npy")])
+        
+        if energylevel == 1:
+            self.object = objects[0]
+        elif energylevel == 2:
+            self.object = objects[1]
+        else:
+            self.object = objects[2]
+        self.nX, self.nY, self.nZ = self.object.shape
+
+    def test_intensities_proper_values(self):
+        # Run simulation
+        xy, yz, xz = sf.simulate_photons_3D(self.n_photons, self.object, self.widths)
+
+        # Check that all values between 0 and 1
+        for x in range(self.nX):
+            for y in range(self.nY):
+                self.assertLessEqual(xy[x,y] - 1e-5, 1)
+                self.assertGreaterEqual(xy[x,y] + 1e-5, 0)
+        
+        # Going through the yz plane
+        for y in range(self.nY):
+            for z in range(self.nZ):
+                self.assertLessEqual(yz[y,z] - 1e-5, 1)
+                self.assertGreaterEqual(yz[y,z] + 1e-5, 0)
+                
+        # Going through the xz plane
+        for x in range(self.nX):
+            for z in range(self.nZ):
+                self.assertLessEqual(xz[x,z] - 1e-5, 1)
+                self.assertGreaterEqual(xz[x,z] + 1e-5, 0)
+        
 
 if __name__ == '__main__':
     unittest.main()

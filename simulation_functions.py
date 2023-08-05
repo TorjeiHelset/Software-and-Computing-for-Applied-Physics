@@ -130,9 +130,9 @@ def simulate_photons_3D(n_photons, object, widths):
             energy (int):            energy of the photon beam to be used in the simulation
         
         Output:
-            xy_plane (1d float array): intensity at detector at each point in xy-plane
-            yz_plane (1d float array): intensity at detector at each point in yz-plane
-            xz_plane (1d float array): intensity at detector at each point in xz-plane
+            xy_plane (2d float array): intensity at detector at each point in xy-plane
+            yz_plane (2d float array): intensity at detector at each point in yz-plane
+            xz_plane (2d float array): intensity at detector at each point in xz-plane
     """
     
     nX, nY, nZ = object.shape # Get the number of gridpoint in each direction (dimension of object)
