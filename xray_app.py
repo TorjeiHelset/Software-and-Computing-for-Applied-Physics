@@ -5,6 +5,7 @@ import tabulate # Tables
 from numba import jit #just in time compilation - faster code
 import simulation_functions as sim
 
+plt.rcParams.update({'axes.grid': True, 'grid.linestyle' : "--", 'figure.figsize' : (9.5,6)})
 
 def main():
     '''
@@ -35,7 +36,7 @@ def main():
         I_analytical = np.exp(-my1[0] * x_1) # For this part we assume attenuation coefficient to be constant
 
         # Figure 1 showing the numerical approximation for different choices of number of photons
-        fig1 = plt.figure(figsize = (9,7))
+        fig1 = plt.figure()
         plt.plot(x_1, I_analytical, label = 'Analytical', linestyle = '--', color = 'black', linewidth = 1)
         number_of_photons = [10, 50, 100, 1000, 10000, 100000]
 
@@ -45,12 +46,11 @@ def main():
             plt.plot(x_1, I_numerical, label = f"{n_photon} fotoner")
         plt.title("Numerical (scaled) intensity for different number of photons compared to the analytical solution.")
         plt.legend()
-        plt.grid()
         plt.show()
         st.pyplot(fig1)
 
         # Figure 2 showing the numerical approximation for different steplengths
-        fig2 = plt.figure(figsize = (9,7))
+        fig2 = plt.figure()
         plt.plot(x_1, I_analytical, label = "Analytical", linestyle = 'dotted', linewidth = 4)
         n_steps_1_2 = [100, 50, 25, 10, 5, 2] # Different number of steps to compare
         dx1_2 = width_1 / np.array(n_steps_1_2)
@@ -67,7 +67,6 @@ def main():
         plt.xlabel("x [cm]")
         plt.ylabel("$I/I_0$")
         plt.legend()
-        plt.grid()
         st.pyplot(fig2)
 
     #############################################
@@ -210,6 +209,60 @@ def main():
         axes8_2.tick_params(axis="y", colors="red")
         st.pyplot(fig8)
 
+
+    ############################################
+    ######//////    Third part      \\\\\\######
+    ############################################
+
+    st.subheader("X-ray imaging of 3D objects")
+
+    with st.expander("Specify parameters for simulation"):
+        n_photons_3 = st.number_input("Number of photons", 1, 10000, 1000, 1, key = 3)
+
+    # Reading in the 3d-objects
+    objects1 = np.array([np.load("data/object1_20keV.npy"), 
+                        np.load("data/object1_50keV.npy"), 
+                        np.load("data/object1_100keV.npy")])
+
+    objects2 = np.array([np.load("data/object2_25keV.npy"), 
+                        np.load("data/object2_50keV.npy"), 
+                        np.load("data/object2_75keV.npy")])
+
+    # Energies of photon beams
+    energies3_1 = np.array([20, 50, 100])
+    energies3_2 = np.array([25, 50, 75])
+
+    # Widths of objects in x, y, z direction (cm).
+    widths3_1 = np.array([6.5, 44.6, 44.6])
+    widhts3_2 = np.array([12, 12, 10])
+
+    if st.checkbox("Run simulation", False, key = 31):
+        # Simulating the photon beams through the two objects
+        object_1, object_2 = [], []
+        for i in range(3):
+            object_1.append(sim.simulate_photons_3D(n_photons_3, objects1[i], widths3_1))
+            object_2.append(sim.simulate_photons_3D(n_photons_3, objects2[i], widhts3_2))
+            
+        objects = [object_1, object_2]
+
+        x_labs = ["x[cm]", "y[cm]", "x[cm]"]
+        y_labs = ["y[cm]", "z[cm]", "z[cm]"]
+        energy_labs = [["20keV", "50keV", "100keV"], ["25keV", "50keV", "75keV"]]
+        extents = [[[0, 6.5, 0, 44.6], [0, 44.6, 0, 44.6], [0, 6.5, 0, 44.6]],
+                [[0, 12, 0, 12], [0, 12, 0, 10], [0, 12, 0, 10]]]
+
+        for i in range(len(objects)):
+            figur12, akser12 = plt.subplots(nrows = 3, ncols = 3, figsize= (9.5, 9))
+            figur12.suptitle(f"Object {i+1}")
+            figur12.subplots_adjust(bottom = 0.1, top = 0.9, hspace = 0.4, wspace = 0.4)
+            for j in range(3):
+                for k  in range(3):
+                    akser12[j, k].grid(False)
+                    akser12[j,k].set_xlabel(x_labs[k])
+                    akser12[j,k].set_ylabel(y_labs[k])
+                    akser12[j,k].set_title(energy_labs[i][j])
+                    akser12[j, k].imshow(objects[i][j][k].T, extent = extents[i][k])
+            st.pyplot(figur12)
 
 if __name__ == "__main__":
     main()
