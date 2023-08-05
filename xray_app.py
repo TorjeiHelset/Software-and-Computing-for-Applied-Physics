@@ -14,6 +14,14 @@ def main():
     User can interact with simulation and plots
     '''
 
+    # Defining the sidebar used for navigation
+    st.sidebar.markdown('''
+        # Sections
+        - [Stability of Monte Carlo Simulation](#stability-of-monte-carlo-simulation)
+        - [Contrast between bone and tissue](#contrast-between-bone-and-tissue)
+        - [X-ray imaging of 3D objects](#x-ray-imaging-of-3d-objects)
+        ''', unsafe_allow_html=True)
+
     # Defining some session state variables
     # These are used to avoid having to rerun simulations extra times
 
