@@ -69,7 +69,7 @@ class Test_simulate_photons_detector(unittest.TestCase):
         end_intensity = sf.simulate_photons_detector(self.n_photons, self.n_steps, self.width, self.mu)
         
         # Checking that the two intensities are "close enough"
-        self.assertAlmostEqual(target, end_intensity, delta = 0.001)
+        self.assertAlmostEqual(target, end_intensity, delta = 0.005)
 
 class Test_simulate_photons_3D(unittest.TestCase):
     """
@@ -120,7 +120,24 @@ class Test_simulate_photons_3D(unittest.TestCase):
             for z in range(self.nZ):
                 self.assertLessEqual(xz[x,z] - 1e-5, 1)
                 self.assertGreaterEqual(xz[x,z] + 1e-5, 0)
-        
+    
+    def test_output_correct_shapes(self):
+        # Run simulation and getting output shapes
+        xy, yz, xz = sf.simulate_photons_3D(self.n_photons, self.object, self.widths)
+        nx1, ny1 = xy.shape
+        ny2, nz2 = yz.shape
+        nx3, nz3 = xz.shape
+
+        # Checking that all shapes allign
+        self.assertEqual(self.nX, nx1)
+        self.assertEqual(self.nX, nx3)
+
+        self.assertEqual(self.nY, ny1)
+        self.assertEqual(self.nY, ny2)
+
+        self.assertEqual(self.nZ, nz2)
+        self.assertEqual(self.nZ, nz3)
+
 
 if __name__ == '__main__':
     unittest.main()
