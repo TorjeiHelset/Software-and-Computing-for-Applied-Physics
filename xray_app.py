@@ -269,7 +269,13 @@ def main():
     ############################################
 
     st.subheader("X-ray imaging of 3D objects")
-
+    st.write("In this part photon beams will be sent through different 3d objects at different energies instead of the 2d objects from before.\
+              2d images will be created by sending the photon beams through the three different axes.\
+              The matrices describing the attenuation coefficient of two unspecified objects at different grid points can be found in the data folder.\
+              The 3d objects have one matrix for different energy levels. From these matrices the goal is to figure out which object is described\
+              by sending photons through the material from different directions. To this end, the most interesting quantity to measure is how many\
+              photons reach the detector after passing through the material.")
+    
     with st.expander("Specify parameters for simulation"):
         n_photons_3 = st.number_input("Number of photons", 1, 10000, 1000, 1, key = 3)
 
@@ -317,6 +323,17 @@ def main():
                     akser12[j,k].set_title(energy_labs[i][j])
                     akser12[j, k].imshow(objects[i][j][k].T, extent = extents[i][k])
             st.pyplot(figur12)
+
+        st.write("The first object seems to to display some organic matter. It is difficult to say for sure,\
+                  but it could be a section of the thorax. The photon beams going through the yz-plane gives\
+                  the most information about the object. The attenuation coefficient varies with energy, which\
+                  is the reason the plots for the different energies look different. \n\
+                  Lower energies make the wavy parts more visible, whereas higher energies gives higher contrast\
+                  between sections in the interior. Depending of what is of interest, different energy levels may be appropriate.\
+                  The images of the first object look quite similar to how traditional x-ray images might look.\n\
+                  The second object seems to be a coffee mug. The mug is visible for all energy levels, but a higher energy level\
+                  gives a higher contrast between the edge of the mug and the interior of the mug. The brighter line at the top of\
+                  the mug might mean that it is filled with coffe up to that point.")
 
 if __name__ == "__main__":
     main()
