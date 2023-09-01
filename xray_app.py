@@ -42,8 +42,8 @@ def main():
     if 'fig2' not in st.session_state:
         st.session_state['fig2'] = None
 
-    # fig2 is a plot showing attenuation coefficient and does not require any simulation
-    # Therefore it is not stored as session_state variable
+    if 'fig3' not in st.session_state:
+        st.session_state['fig3'] = None
 
     if 'fig4' not in st.session_state:
         st.session_state['fig4'] = None
@@ -141,13 +141,16 @@ def main():
     energy_lower, energy_higher = 1e-2, 1e-1
 
     if st.checkbox("Display attenuation coefficient", True):
-        fig3 = plt.figure()
-        plt.loglog(energy_tissue, mu_tissue, label = "Tissue")
-        plt.loglog(energy_bone, mu_bone, label = "Bone")
-        plt.title("Attentuation coefficient as function of density")
-        plt.xlabel("Energy [MeV]"); plt.ylabel("$\mu$ $[cm^{-1}]$"); plt.legend(); plt.ylim(1e-2, 1e4)
-        plt.vlines(energy_lower, 0, 1e4, color = "grey"); plt.vlines(energy_higher, 0, 1e4, color = "grey")
-        st.pyplot(fig3)
+        if not st.session_state['fig3']:
+            fig3 = plt.figure()
+            plt.loglog(energy_tissue, mu_tissue, label = "Tissue")
+            plt.loglog(energy_bone, mu_bone, label = "Bone")
+            plt.title("Attentuation coefficient as function of density")
+            plt.xlabel("Energy [MeV]"); plt.ylabel("$\mu$ $[cm^{-1}]$"); plt.legend(); plt.ylim(1e-2, 1e4)
+            plt.vlines(energy_lower, 0, 1e4, color = "grey"); plt.vlines(energy_higher, 0, 1e4, color = "grey")
+            st.session_state['fig3'] = fig3
+
+        st.pyplot(st.session_state['fig3'])
         st.write("The plot shows the attenuation coefficient of bone and tissue at varying energies.\
                   It can be noted than the attenuation coefficient of bone always stays higher than tissue.")
     
