@@ -1,6 +1,33 @@
 from numba import jit #just in time compilation - faster code
 import numpy as np
 
+@jit(nopython=True) # just-in-time compilation
+def simulate_single_photon(width, n_steps, r, p, dx):
+    '''
+    Simulates one photon passing through a material of given width using n_steps.
+    For each step there is a probability p of being absorbed.
+
+        Parameters:
+            width (float) :             Width of material
+            n_steps (int) :             Number of steps in simulation
+            r (1D array of float) :     Array of numbers sampled from uniform distribution
+            p (float) :                 Probability of being absorbed at each step
+            dx (float) :                Length of each step
+
+        Output:
+            length :                    Length reached by photon in material
+    '''
+
+    length = width # If not scattered/absorbed this won't be overwritten
+    for j in range(n_steps):
+        # Going through each step in the material
+        if r[j] < p[j]:
+            # If true the photon was absorbed during step j
+            length = dx * j # The length the photon reached
+            break
+    return length
+    
+
 
 @jit(nopython=True) # just-in-time compilation
 def simulate_photons(n_photons, n_steps, width, my, set_seed=123):
@@ -43,14 +70,7 @@ def simulate_photons(n_photons, n_steps, width, my, set_seed=123):
     
     for i in range(n_photons):    
         # Simulate each photon seperately      
-        length = width # If not scattered/absorbed this won't be overwritten
-        for j in range(n_steps):
-            # Going through each step in the material
-            if r[i, j] < p[j]:
-                # If true the photon was absorbed during step j
-                length = dx * j # The length the photon reached
-                break
-        lengths[i] = length # Storing the length photon i reached
+        lengths[i] = simulate_single_photon(width, n_steps, r[i,:], p, dx) # Storing the length photon i reached
     
     I = np.zeros(n_steps + 1) # Contains the relative intensity at each gridpoint (including start/end)
 
@@ -105,13 +125,7 @@ def simulate_photons_detector(n_photons, n_steps, width, my, set_seed=123):
     
     for i in range(n_photons):    
         # Simulate each photon seperately      
-        length = width # If not scattered/absorbed this won't be overwritten
-        for j in range(n_steps):
-            # Going through each step in the material
-            if r[i, j] < p[j]:
-                # If true the photon was absorbed during step j
-                length = dx * j # The length the photon reached
-                break
+        length = simulate_single_photon(width, n_steps, r[i,:], p, dx)
         if length == width:
             # Detector was reached
             n_hits += 1
