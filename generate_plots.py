@@ -6,6 +6,22 @@ import simulation_functions as sim
 import generate_plots as gen
 
 def simulation_1(width_1, n_steps_1, x_1, n_photons_1, my1):
+    '''
+    Runs a monte carlo simulation of photons beams passing through a material with attenuation
+    coefficient my1. Compares the simulated results for different choices of photons and 
+    steplengths with an analytical solution.
+
+        Parameters:
+            width_1 (int):            width of material
+            n_steps_1 (int):          number of discrete steps taken through the material
+            x_1 (1d float array):     array of depths in material 
+            n_photons_1 (int):        Number of photons used in simulation
+            my1 (1D float array):     Array of attenuation coefficient at different depths
+        
+        Output:
+            fig1 (matplotlib figure): Plot showing difference between analytical and simulated results for different number of photons
+            fig2 (matplotlib figure): Plot showing difference between analytical and simulated results for different steplengths
+    '''
     # Analytical solution given the parameters:
     I_analytical = np.exp(-my1[0] * x_1) # For this part we assume attenuation coefficient to be constant
 
@@ -40,6 +56,23 @@ def simulation_1(width_1, n_steps_1, x_1, n_photons_1, my1):
     return fig1, fig2
 
 def simulation_2(width_2, n_steps_2, n_photons_2):
+    '''
+    Runs a monte carlo simulation of photons beams passing through a bone and tissue.
+    Compares the contrast between the two materials, the number of required photons for 
+    the beam to be detected and the absorbed dosage of the photon beams.
+
+        Parameters:
+            width_2 (int):            width of material
+            n_steps_2 (int):          number of discrete steps taken through the material
+            n_photons_2 (int):        Number of photons used in simulation
+        
+        Output:
+            fig4 (matplotlib figure): Plot showing relative intensity at detector for different energies
+            fig5 (matplotlib figure): Plot showing contrast between photon beams passing through bone and tissue
+            fig6 (matplotlib figure): Plot showing the required number of photons for beam to be detected
+            fig7 (matplotlib figure): Plot showing the absored dosage of beams passing through bone and tissue
+            fig8 (matplotlib figure): Plot showing total absored dosage of photon beam
+    '''
     tissue_dens = 1.02 #g/cm^3
     bone_dens = 1.92 #g/cm^3
     # reading in the datafiles for attenuation coefficients
@@ -150,6 +183,22 @@ def simulation_2(width_2, n_steps_2, n_photons_2):
     return fig4, fig5, fig6, fig7, fig8
 
 def simulation_3(n_photons_3, objects1, objects2, widths3_1, widhts3_2):
+    '''
+    Runs a monte carlo simulation of photons beams passing through a two different 3D objects.
+    Sends photon beams through the objectives in all directions, and return plots showing 
+    energy of beams having passed through the objects.
+
+        Parameters:
+            n_photons_3 (int):                  Number of photons used in simulation
+            objects1 (list of 3D float array):  List of attenuation coefficient matrix for differnt energies for object 1
+            objects2 (list of 3D float array):  List of attenuation coefficient matrix for differnt energies for object 2
+            widths3_1 (1D array):               Length of each axis of object 1
+            widths3_2 (1D array):               Length of each axis of object 2
+        
+        Output:
+            fig9 (matplotlib figure):           Plot showing the intensity of photon beams having passed through object 1
+            fig10 (matplotlib figure):          Plot showing the intensity of photon beams having passed through object 1
+    '''
     # Simulating the photon beams through the two objects
     object_1, object_2 = [], []
     for i in range(3):
