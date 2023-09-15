@@ -3,7 +3,7 @@ import numpy as np
 
 
 @jit(nopython=True) # just-in-time compilation
-def simulate_photons(n_photons, n_steps, width, my):
+def simulate_photons(n_photons, n_steps, width, my, set_seed=123):
     """
     Approximates the intensity of a photon beam moving through a material evaluated at different steps.
     The approximation is based on a Monte Carlo method using the fact that for each distance x to x + Delta x
@@ -16,6 +16,7 @@ def simulate_photons(n_photons, n_steps, width, my):
             n_steps (int):          number of discrete steps taken through the material
             width (float):          the width of the material (cm)
             my (1D float array):    the attenuation coefficient of the material at each step
+            set_seed (int):         seed to get reproducable results
         
         Output:
             I (1D float array):     the intensity at each step relative to initial intensity
@@ -33,7 +34,8 @@ def simulate_photons(n_photons, n_steps, width, my):
     if width <= 0:
         raise ValueError('The width must be positive.')
     
-    
+    np.random.seed(set_seed)
+
     dx = width / n_steps
     lengths = np.zeros(n_photons) # Each element i is the lenght (cm) photon i reached
     p = my * dx # Pobabilities of being scattered/absorbed at the different steps           
@@ -63,7 +65,7 @@ def simulate_photons(n_photons, n_steps, width, my):
 
 
 @jit(nopython=True) # just-in-time compilation
-def simulate_photons_detector(n_photons, n_steps, width, my):
+def simulate_photons_detector(n_photons, n_steps, width, my, set_seed=123):
     """
     Approximates the intensity of a photon beam after having moved through a material evaluated.
     The approximation is based on a Monte Carlo method using the fact that for each distance x to x + Delta x
@@ -76,6 +78,7 @@ def simulate_photons_detector(n_photons, n_steps, width, my):
             n_steps (int):          number of discrete steps taken through the material
             width (float):          the width of the material (cm)
             my (1D float array):    the attenuation coefficient of the material at each step
+            set_seed (int):         seed to get reproducable results
         
         Output:
             n_hits / n_photons:     the percentage of photons reaching the detector
@@ -93,7 +96,8 @@ def simulate_photons_detector(n_photons, n_steps, width, my):
     if width <= 0:
         raise ValueError('The width must be positive.')
     
-    
+    np.random.seed(set_seed)
+
     dx = width / n_steps
     p = my * dx # Pobabilities of being scattered/absorbed at the different steps           
     r = np.random.rand(n_photons, n_steps) # Random numbers for comparing with p
@@ -116,7 +120,7 @@ def simulate_photons_detector(n_photons, n_steps, width, my):
 
 
 @jit(nopython = True)
-def simulate_photons_3D(n_photons, object, widths):
+def simulate_photons_3D(n_photons, object, widths, set_seed=123):
     """
     Takes in a 3d matrix "object" describing the attenuation coefficient of a material
     at different grid points. Approximates the intensity of a photon beam moving through
@@ -128,6 +132,7 @@ def simulate_photons_3D(n_photons, object, widths):
             object (3D float array): matrix of attenuation coefficients at grid points
             width (1d float array):  the widths of the material (cm) in each direction
             energy (int):            energy of the photon beam to be used in the simulation
+            set_seed (int):         seed to get reproducable results
         
         Output:
             xy_plane (2d float array): intensity at detector at each point in xy-plane
@@ -142,13 +147,13 @@ def simulate_photons_3D(n_photons, object, widths):
     for x in range(nX):
         for y in range(nY):
             my = object[x, y, :] # Getting attenuation coefficients
-            xy_plane[x, y] = simulate_photons_detector(n_photons, nZ, widths[2], my)
+            xy_plane[x, y] = simulate_photons_detector(n_photons, nZ, widths[2], my, set_seed)
     
     # Going through the yz plane
     for y in range(nY):
         for z in range(nZ):
             my = object[:, y, z] # Getting attenuation coefficients
-            yz_plane[y, z] = simulate_photons_detector(n_photons, nX, widths[0], my)
+            yz_plane[y, z] = simulate_photons_detector(n_photons, nX, widths[0], my, set_seed)
             
     # Going through the xz plane
     for x in range(nX):
