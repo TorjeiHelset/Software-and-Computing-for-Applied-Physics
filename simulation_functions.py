@@ -333,3 +333,43 @@ def simulate_photons_bone_and_tissue(energy_tissue, energy_bone, energy_higher, 
         I_after_bone[i] = I_bone_beam[(2*n_steps)//3]
 
     return energies, I_tissue_detector, I_bone_detector, I_after_tissue, I_after_bone
+
+
+def calculate_absorpotion(I_tissue_detector, I_bone_detector, req_photons_tissue, I_after_tissue, I_after_bone,
+                          energies, tissue_dens, bone_dens, width):
+    # Calculating the number of photons that reached detector and each of the 
+    # sections in the tissue and tissue/bone beams
+    n_photon_tissue = I_tissue_detector[1:] * req_photons_tissue
+    n_photon_bone = I_bone_detector[1:] * req_photons_tissue
+    n_photon_after_tissue = I_after_tissue[1:] * req_photons_tissue # After the tissue part
+    n_photon_after_bone = I_after_bone[1:] * req_photons_tissue # After bone part
+
+    n_absorbed_tissue = req_photons_tissue - n_photon_tissue # Absorbed photons for the tissue beam
+
+    # Calculating the number of photons absorbed in the second beam after each of the sections
+    n_in_tissue = req_photons_tissue - n_photon_after_tissue
+    n_in_bone = n_photon_after_tissue - n_photon_after_bone
+    n_absorbed_bone = n_photon_after_bone - n_photon_bone
+
+    A = 1 # Choosing area of 1 cm^2
+    V = A * width #cm^3
+    # Calculating the total absorbed dosages for the two beams
+    d_tissue = n_absorbed_tissue * energies[1:] / (V * tissue_dens)
+    d_bone = energies[1:] / V * ((n_in_tissue / (1/3 * tissue_dens))
+                            +  (n_in_bone / (1/3 * bone_dens)) 
+                            +  (n_absorbed_bone / (1/3 * tissue_dens))) 
+    
+    return d_tissue, d_bone
+
+def read_in_objects(object_names):
+    '''
+    Reading in attenuation matrices from data folder
+
+        Parameters:
+            object_names (1D array of strings) :    List of filenames of file containing attenuation data
+
+        Out:
+            (1D array of 3D numpy array) :          List of 3D matrices containing attenuation of object at gridpoints
+    '''
+    return np.array([np.load(name) for name in object_names])
+
