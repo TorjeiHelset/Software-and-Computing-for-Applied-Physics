@@ -52,6 +52,19 @@ class Test_simulate_photons(unittest.TestCase):
         # Check that the outputed intensity has length equal to the number of steps + 1 (including start/end)
         self.assertEqual(len(intensity), self.n_steps + 1)
 
+    def test_compared_with_analytical(self):
+        """
+        Test that the outputed intensity vector is close to analytical
+        """
+        seed = 123
+
+        # Run simulation
+        intensity = sf.simulate_photons(self.n_photons, self.n_steps, self.width, self.mu, seed)
+        x = np.linspace(0, self.width, self.n_steps + 1)
+        I_analytical = np.exp(-self.mu[0] * x)
+
+        # Check that the norm of the intensities are close
+        self.assertAlmostEqual(np.linalg.norm(I_analytical), np.linalg.norm(intensity), delta=0.05)
 
 class Test_simulate_photons_detector(unittest.TestCase):
     """
@@ -91,6 +104,20 @@ class Test_simulate_photons_detector(unittest.TestCase):
         
         # Checking that the two intensities are "close enough"
         self.assertAlmostEqual(target, end_intensity, delta = 0.005)
+
+    def test_compared_with_analytical(self):
+        """
+        Test that the outputed intensity vector is close to analytical
+        """
+        seed = 123
+
+        # Run simulation
+        intensity = sf.simulate_photons_detector(self.n_photons, self.n_steps, self.width, self.mu, seed)
+        x = np.linspace(0, self.width, self.n_steps + 1)
+        I_analytical = np.exp(-self.mu[0] * x)
+
+        # Check that the norm of the intensities are close
+        self.assertAlmostEqual(I_analytical[-1], intensity, delta=0.005)
 
 class Test_simulate_photons_3D(unittest.TestCase):
     """
