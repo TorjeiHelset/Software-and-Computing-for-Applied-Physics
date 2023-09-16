@@ -1,5 +1,6 @@
 from numba import jit #just in time compilation - faster code
 import numpy as np
+import matplotlib.pyplot as plt
 
 @jit(nopython=True) # just-in-time compilation
 def simulate_single_photon(width, n_steps, r, p, dx):
@@ -176,3 +177,31 @@ def simulate_photons_3D(n_photons, object, widths, set_seed=123):
             xz_plane[x, z] = simulate_photons_detector(n_photons, nY, widths[1], my)
     
     return xy_plane, yz_plane, xz_plane
+
+
+def compare_different_n_photon(n_photons, n_steps, width, my):
+    '''
+    Compares results from Monte-Carlo simulation with analytical solution for different 
+    choices of number of photons.
+
+    Parameters:
+        n_photons (1D array of int) :   Array of different number of photons
+        n_steps (int) :                 Number of steps to be used in simulation
+        width (float) :                 Width of material (cm)
+        my (1D array of foat) :         List of attenuation coefficients at each step
+    '''
+    x_1 = np.linspace(0, width, n_steps + 1)
+
+    # Analytical solution given the parameters:
+    I_analytical = np.exp(-my[0] * x_1) # For this part we assume attenuation coefficient to be constant
+
+    fig1 = plt.figure()
+    plt.plot(x_1, I_analytical, label = 'Analytical', linestyle = '--', color = 'black', linewidth = 1)
+
+    for i, n_photon in enumerate(n_photons):
+        # Going through the different numbers of photons
+        I_numerical = simulate_photons(n_photon, n_steps, width, my)
+        plt.plot(x_1, I_numerical, label = f"{n_photon} photons")
+    plt.title("Numerical (scaled) intensity for different number of photons compared to the analytical solution.")
+    plt.legend()
+    plt.show()
