@@ -334,6 +334,24 @@ def simulate_photons_bone_and_tissue(energy_tissue, energy_bone, energy_higher, 
 
     return energies, I_tissue_detector, I_bone_detector, I_after_tissue, I_after_bone
 
+def contrast(I1, I2):
+    '''
+    Calculates contrast between two phton beams
+
+        Paramters:
+            I1 (Array of float) :    Intensity of first photon beam
+            I2 (Array of float) :    Intensity of second photon beam
+
+        Out:
+            Contrast (Array of float) : Contrast between the two photon beams
+
+    '''
+
+    contrast = np.zeros(len(I2))
+    for i in range(len(I1)):
+        contrast[i] = (I1[i] - I2[i]) / I1[i]
+
+    return contrast
 
 def calculate_absorpotion(I_tissue_detector, I_bone_detector, req_photons_tissue, I_after_tissue, I_after_bone,
                           energies, tissue_dens, bone_dens, width):
