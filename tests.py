@@ -10,6 +10,7 @@ class Test_simulate_photons(unittest.TestCase):
     """
     def setUp(self):
         # Setting up parameters
+        random.seed(123)
         self.n_photons = random.randint(10000, 100000)
         self.n_steps = random.randint(100, 1000)
         self.width = random.randint(5,20)
@@ -19,8 +20,9 @@ class Test_simulate_photons(unittest.TestCase):
         '''
         Test that the intensity is between 0 and 1 at all points
         '''
+        seed = 123
         # Run simulation 
-        intensity = sf.simulate_photons(self.n_photons, self.n_steps, self.width, self.mu)
+        intensity = sf.simulate_photons(self.n_photons, self.n_steps, self.width, self.mu, seed)
 
         # Check that all intensities are between 0 and 1
         for i in intensity:
@@ -31,8 +33,9 @@ class Test_simulate_photons(unittest.TestCase):
         """
         Test that the intensity doesn't increase at any point
         """
+        seed = 123
         # Run simulation
-        intensity = sf.simulate_photons(self.n_photons, self.n_steps, self.width, self.mu)
+        intensity = sf.simulate_photons(self.n_photons, self.n_steps, self.width, self.mu, seed)
 
         # Check that intensity is decreasing
         for i in range(len(intensity)-1):
@@ -42,8 +45,9 @@ class Test_simulate_photons(unittest.TestCase):
         """
         Test that the outputed intensity vector has the correct number of elements
         """
+        seed = 123
         # Run simulation
-        intensity = sf.simulate_photons(self.n_photons, self.n_steps, self.width, self.mu)
+        intensity = sf.simulate_photons(self.n_photons, self.n_steps, self.width, self.mu, seed)
 
         # Check that the outputed intensity has length equal to the number of steps + 1 (including start/end)
         self.assertEqual(len(intensity), self.n_steps + 1)
@@ -54,7 +58,7 @@ class Test_simulate_photons_detector(unittest.TestCase):
     Class for testing the simulate photons detector function
     """
     def setUp(self):
-
+        random.seed(123)
         # Setting up parameters
         self.n_photons = random.randint(10000, 100000)
         self.n_steps = random.randint(100, 1000)
@@ -65,23 +69,25 @@ class Test_simulate_photons_detector(unittest.TestCase):
         """
         Testing that the outputed intensity is between 0 and 1
         """
+        seed = 123
         # Run simulation 
-        intensity = sf.simulate_photons_detector(self.n_photons, self.n_steps, self.width, self.mu)
+        intensity = sf.simulate_photons_detector(self.n_photons, self.n_steps, self.width, self.mu, seed)
 
         # Check that all intensities are between 0 and 1
         self.assertLessEqual(intensity - 1e-5, 1)
         self.assertGreaterEqual(intensity + 1e-5, 0)
 
     def test_comparable_result(self):
+        seed = 123
         """
         Checking that the method gives similar intensity at the decoder compared
         to the simulate_photons method
         """
 
         # Run simulation for both approaches
-        old_approach = sf.simulate_photons(self.n_photons, self.n_steps, self.width, self.mu)
+        old_approach = sf.simulate_photons(self.n_photons, self.n_steps, self.width, self.mu, seed)
         target = old_approach[-1]
-        end_intensity = sf.simulate_photons_detector(self.n_photons, self.n_steps, self.width, self.mu)
+        end_intensity = sf.simulate_photons_detector(self.n_photons, self.n_steps, self.width, self.mu, seed)
         
         # Checking that the two intensities are "close enough"
         self.assertAlmostEqual(target, end_intensity, delta = 0.005)
@@ -91,6 +97,7 @@ class Test_simulate_photons_3D(unittest.TestCase):
     Class for testing the simulate photons 3D function
     """
     def setUp(self):
+        random.seed(123)
         # Setting up parameters
         self.n_photons = random.randint(100, 1000)
         self.widths = np.array([random.randint(5,20) for _ in range(3)])
@@ -119,8 +126,9 @@ class Test_simulate_photons_3D(unittest.TestCase):
         Checking that the intensity at the detector is between
         0 and 1 for all beams
         """
+        seed = 123
         # Run simulation
-        xy, yz, xz = sf.simulate_photons_3D(self.n_photons, self.object, self.widths)
+        xy, yz, xz = sf.simulate_photons_3D(self.n_photons, self.object, self.widths, seed)
 
         # Check that all values between 0 and 1
         for x in range(self.nX):
@@ -145,8 +153,9 @@ class Test_simulate_photons_3D(unittest.TestCase):
         Checking that the outputed detector intensity has the
         correct shape given the object matrix
         """
+        seed = 123
         # Run simulation and getting output shapes
-        xy, yz, xz = sf.simulate_photons_3D(self.n_photons, self.object, self.widths)
+        xy, yz, xz = sf.simulate_photons_3D(self.n_photons, self.object, self.widths, seed)
         nx1, ny1 = xy.shape
         ny2, nz2 = yz.shape
         nx3, nz3 = xz.shape
