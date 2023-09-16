@@ -1,6 +1,8 @@
 from numba import jit #just in time compilation - faster code
 import numpy as np
 import matplotlib.pyplot as plt
+from IPython.display import HTML, display # For tables
+import tabulate # Tables
 
 @jit(nopython=True) # just-in-time compilation
 def simulate_single_photon(width, n_steps, r, p, dx):
@@ -205,3 +207,29 @@ def compare_different_n_photon(n_photons, n_steps, width, my):
     plt.title("Numerical (scaled) intensity for different number of photons compared to the analytical solution.")
     plt.legend()
     plt.show()
+
+
+def compare_different_n_table(n_photons, n_steps, width, my):
+    x_1 = np.linspace(0, width, n_steps + 1)
+    I_analytical = np.exp(-my[0] * x_1) # For this part we assume attenuation coefficient to be constant
+    
+    table = []
+    for i, n_photon in enumerate(n_photons):
+        distance = np.zeros(n_steps + 1)
+        for j in range(1000):
+            I = simulate_photons(n_photon, n_steps, width, my)
+            
+            distance += abs(I_analytical - I) # Summing up the total distances of all the runs
+        
+        # Calculate averages and standard deviations
+        mean_error = np.mean(distance/1000) 
+        std_error = np.std(distance/1000)
+        
+        # Adding result to table for easier
+        table.append([f"{n_photon}", round(mean_error, 4), round(std_error, 4)])
+        
+    # Using library tabulate to get a good looking table
+    # Changing the html code to get a centered table
+    display(HTML('<table width="80%" style="margin: 0px auto;"><thead><tr><th style="text-align: center;">' 
+        + tabulate.tabulate(table, headers=["Photons", "Mean error I/I0", "Standard deviation I/I0"], 
+                                tablefmt="html")[52:-8] + "</table>"))
