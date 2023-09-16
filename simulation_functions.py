@@ -275,3 +275,61 @@ def compare_differnt_steplengths(n_photons, n_steps, width, my):
 
     plt.title("Monte Carlo-method with different $\Delta$x"); plt.xlabel("x [cm]"); plt.ylabel("$I/I_0$"); plt.legend()
     plt.show()
+
+
+def simulate_photons_bone_and_tissue(energy_tissue, energy_bone, energy_higher, energy_lower, mu_tissue, mu_bone,
+                                     n_steps, width, n_photons):
+    '''
+    Simulates photon beams going through only tissue and material going through tissue and bone. Photon beams of different 
+    energies will be sent through the two materials.
+
+        Parameters :
+            energy_tissue (1D array of float) :     Array of energies where there is data on the attenuation coefficient for tissue
+            energy_bone (1D array of float) :       Array of energies where there is data on the attenuation coefficient for bone
+            energy_higher (float) :                 Upper bound of energy to be considered
+            energy_lower (float) :                  Lower bound of energy to be considered
+            mu_tissue (1D array of float) :         Array of attenuation coefficient of tissue for different energies
+            mu_bone (1D array of float) :           Array of attenuation coefficient of bone for different energies
+            n_steps (int) :                         Number of steps to simulate
+            width (float) :                         Width of material
+            n_photons (int) :                       Number of photons to be used in material
+
+        Out:
+            energies (1D array of float) :          Array of energies between lower and upper bound
+            I_tissue_detector (1D array of float) : Intensity of photon beams of different energies after passing through tissue
+            I_bone_detector (1D array of float) :   Intensity of photon beams of different energies after passing through tissue and bone
+            I_after_tissue (1D array of float) :    Intensity of beam after passing through section of only tissue
+            I_after_bone (1D array of float) :      Intensity of beam after passing through section of only tissue and section of only bone
+
+    '''
+    # Creating a list of energies that are contained in both bone and tissue data, and are within interval
+    energies = energy_tissue[(energy_tissue <= energy_higher) & (energy_tissue >= energy_lower)] 
+
+    # Two lists to store intensity at the detector for each energy level
+    I_tissue_detector = np.zeros(len(energies)) #I1: kun vev
+    I_bone_detector = np.zeros(len(energies)) #I2: vev-bein-vev
+
+    # Also storing intensity for the second beam after tissue part and after bone part
+    I_after_tissue = np.zeros(len(energies))
+    I_after_bone = np.zeros(len(energies))
+
+    for i, energy in enumerate(energies):
+        # Collecting the correct attenuation coefficients for each of the two 
+        index_tissue = np.where(energy_tissue == energy)[0][0] 
+        index_bone = np.where(energy_bone == energy)[0][0]
+
+        # Transforming the coefficient to lists of length equal to number of steps
+        mu_tissue_i = mu_tissue[index_tissue] * np.ones(n_steps)
+        mu_bone_i = mu_tissue_i.copy()
+        
+        # Filling in the bone region
+        mu_bone_i[n_steps // width : 2 * n_steps // width] = mu_bone[index_bone]
+
+        # Simulating n_photons_2 number of photons through the different materials
+        I_tissue_detector[i] = simulate_photons(n_photons, n_steps, width, mu_tissue_i)[-1]
+        I_bone_beam = simulate_photons(n_photons, n_steps, width, mu_bone_i)
+        I_bone_detector[i] = I_bone_beam[-1]
+        I_after_tissue[i] = I_bone_beam[n_steps//3]
+        I_after_bone[i] = I_bone_beam[(2*n_steps)//3]
+
+    return energies, I_tissue_detector, I_bone_detector, I_after_tissue, I_after_bone
