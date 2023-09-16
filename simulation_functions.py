@@ -245,3 +245,33 @@ def compare_different_n_table(n_photons, n_steps, width, my):
     display(HTML('<table width="80%" style="margin: 0px auto;"><thead><tr><th style="text-align: center;">' 
         + tabulate.tabulate(table, headers=["Photons", "Mean error I/I0", "Standard deviation I/I0"], 
                                 tablefmt="html")[52:-8] + "</table>"))
+    
+
+def compare_differnt_steplengths(n_photons, n_steps, width, my):
+    '''
+    Compares results from Monte-Carlo simulation with analytical solution for different 
+    choices of number of steplenghts.
+
+        Parameters:
+            n_photons (int) :               Number of photons to be used in simulation
+            n_steps (1D array of int) :     List of different steps to be used in simulation
+            width (float) :                 Width of material (cm)
+            my (Foat) :                     Attenuation coefficient of material
+
+    '''
+    x_1 = np.linspace(0, width, n_steps[-1] + 1)
+    I_analytical = np.exp(-my * x_1) # For this part we assume attenuation coefficient to be constant
+    fig2 = plt.figure()
+    plt.plot(x_1, I_analytical, label = "Analytical", linestyle = 'dotted', linewidth = 4)
+    dx = width / np.array(n_steps)
+
+    # Simulate 100,000 photons through the material with the steplengths definied above
+    for i, n_step in enumerate(n_steps):
+        x1_2 = np.linspace(0, width, n_step + 1) # Need new x-axis for each simulation
+        my_dim = my * np.ones(n_step) # Dimension of my changes with number of steps
+        I = simulate_photons(n_photons, n_step, width, my_dim) # Do the simulation
+        
+        plt.plot(x1_2, I, label = f"$\Delta x$ = {dx[i]} cm")
+
+    plt.title("Monte Carlo-method with different $\Delta$x"); plt.xlabel("x [cm]"); plt.ylabel("$I/I_0$"); plt.legend()
+    plt.show()
