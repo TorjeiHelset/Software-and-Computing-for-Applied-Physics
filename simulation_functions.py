@@ -210,6 +210,18 @@ def compare_different_n_photon(n_photons, n_steps, width, my):
 
 
 def compare_different_n_table(n_photons, n_steps, width, my):
+    '''
+    Compares the results from Monte-Carlo simulation to the analytical ones by running simulation 1000
+    times for each choice of number of photons. Calculates mean error and standard deviation of error and
+    summarizing in table.
+
+        Parameters:
+            n_photons (1D array of int) :   Array of different number of photons
+            n_steps (int) :                 Number of steps to be used in simulation
+            width (float) :                 Width of material (cm)
+            my (1D array of foat) :         List of attenuation coefficients at each step
+
+    '''
     x_1 = np.linspace(0, width, n_steps + 1)
     I_analytical = np.exp(-my[0] * x_1) # For this part we assume attenuation coefficient to be constant
     
