@@ -126,7 +126,7 @@ class Test_simulate_photons_3D(unittest.TestCase):
     def setUp(self):
         random.seed(123)
         # Setting up parameters
-        self.n_photons = random.randint(100, 1000)
+        self.n_photons = 1000
         self.widths = np.array([random.randint(5,20) for _ in range(3)])
         coinflip = random.random()
         energylevel = random.randint(1,3)
@@ -147,6 +147,12 @@ class Test_simulate_photons_3D(unittest.TestCase):
         else:
             self.object = objects[2]
         self.nX, self.nY, self.nZ = self.object.shape
+
+        self.n = 21
+        
+        # Creating rotated box to check that 3d simulation give reasonable results
+        self.mu = 0.1
+        self.box = np.ones((self.n,self.n,self.n)) * self.mu
 
     def test_intensities_proper_values(self):
         """
@@ -196,6 +202,39 @@ class Test_simulate_photons_3D(unittest.TestCase):
 
         self.assertEqual(self.nZ, nz2)
         self.assertEqual(self.nZ, nz3)
+
+    def test_compared_to_analytical(self):
+        """
+        Checking that the outputed detector intensity is close to the analytical
+        intensity.
+        """
+
+        seed = 123
+
+        # Run simulation
+        xy, yz, xz = sf.simulate_photons_3D(self.n_photons, self.box, [self.widths[0], self.widths[0], self.widths[0]], seed)
+
+        x = np.linspace(0, self.widths[0], self.n + 1)
+        I_analytical = np.exp(-self.mu * x)
+
+        # Check that the norm of the intensities are close
+        # XY-plane
+        for x in range(self.n):
+            for y in range(self.n):
+                self.assertAlmostEqual(I_analytical[-1], xy[x,y], delta=0.05)
+                
+        
+        # Going through the yz plane
+        for y in range(self.n):
+            for z in range(self.n):
+                self.assertAlmostEqual(I_analytical[-1], yz[y,z], delta=0.05)
+
+                
+        # Going through the xz plane
+        for x in range(self.n):
+            for z in range(self.n):
+                self.assertAlmostEqual(I_analytical[-1], xz[x,z], delta=0.05)
+                
 
 
 if __name__ == '__main__':
